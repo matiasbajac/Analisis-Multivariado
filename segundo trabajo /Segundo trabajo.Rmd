@@ -1,0 +1,95 @@
+---
+title: "Segundo trabajo"
+author: "Aris Sarkisian - Matias Bajac"
+date: '2024-06-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(here)
+library(tidyverse)
+library(factoextra)
+library(cluster)
+library(NbClust)
+```
+
+
+```{r}
+datos2 <- read.table(here("EUT2013_estudiantessecundaria (2).txt"),header = T, dec=".",sep = ",")
+datos2 <- datos2 %>% filter(!is.na(aniosed_h))
+cuanti = datos2 %>%  select(1:7, log_ing,aniosed_h,edad,act,inact,disc_h)  %>% mutate(across(everything(), ~ round(., 2)))
+
+ cor(cuanti)
+ 
+cuanti
+
+
+```
+```{r}
+
+
+datosst2<-scale(cuanti) 
+
+distancias2 <- get_dist(datosst2, method = "euclidean")
+
+fviz_dist(distancias2, lab_size = 8) 
+```
+
+```{r}
+CJ_ward2 <- agnes(distancias2 ,  method = "ward")
+CJ_mascerc2 <- agnes(distancias2, method = "single")
+CJ_maslejos2 <- agnes(distancias2, method = "complete")
+
+```
+
+
+
+
+
+```{r}
+#Dendograma
+plot(CJ_ward2) 
+fviz_dend(CJ_ward,cex=0.4) 
+
+plot(CJ_mascerc) 
+fviz_dend(CJ_mascerc,cex=0.4) 
+
+plot(CJ_maslejos) 
+fviz_dend(CJ_maslejos,cex=0.4) 
+```
+ 
+ ## Analisis para el numero de clusters segun Ward 
+ 
+ 
+```{r}
+pseudot2 <- NbClust(datosst2 , distance = "euclidean" , method = "ward.D" , index = "pseudot2")
+pseudot2$All.index
+
+pseudoF <- NbClust(datosst2 , distance = "euclidean" , method = "ward.D" , index = "ch")
+pseudoF$All.index
+
+
+sil<- NbClust(datosst2 , distance = "euclidean" , method = "ward.D" , index = "silhouette")
+sil$All.index
+par(mfrow=c(2,2))
+plot(pseudoF$All.index, type = "b", col=1)
+plot(pseudot2$All.index, type = "b",col=2)
+plot(sil$All.index, type = "b", col=3)
+```
+ ##Graficos de silueta
+ 
+ 
+ 
+```{r silueta_ward}
+silueta2_ward<-silhouette(cutree(CJ_ward2 , 2) , distancias2)
+silueta3_ward<-silhouette(cutree(CJ_ward2 , 3) , distancias2)
+
+fviz_silhouette(silueta2_ward)
+fviz_silhouette(silueta3_ward)
+
+```
+
